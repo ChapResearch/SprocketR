@@ -7,14 +7,14 @@
 */
 
 /* formatParams() - formats the associative array $params as a space separated
-                    string with a leading space, and 0 for placeholders. Used
-		    to generate the parameter list for the call to blender
-		    scripts. The exact composition depends on which "phase" of
-		    sprocket generation the user is on. Since "numTeeth" is the
-		    default refinement option (aka way by which to generate 
-		    slightly different sprockets), its presence means $params
-		    contains the user inputted data and therefore the names of
-		    the fields are different (which is horrible, I know).
+   string with a leading space, and 0 for placeholders. Used
+   to generate the parameter list for the call to blender
+   scripts. The exact composition depends on which "phase" of
+   sprocket generation the user is on. Since "numTeeth" is the
+   default refinement option (aka way by which to generate 
+   slightly different sprockets), its presence means $params
+   contains the user inputted data and therefore the names of
+   the fields are different (which is horrible, I know).
 */
 function formatParams($params)
 {
@@ -22,15 +22,18 @@ function formatParams($params)
 
   if (!empty($params["gearRatioField"])){ // using user parameters
     $paramList .= ' ' . $params["gearRatioField"];
-  } else { // using blender returned values
+  } else if (!empty($params["littleTeeth"])){ // using blender returned values
     $paramList .= ' ' . $params["littleTeeth"] . ':' . $params["bigTeeth"];
-	//$paramList .= ' ' . $params["bigTeeth"] . ':' . $params["littleTeeth"];
+  } else { // no user parameter specified
+    $paramList .= ' ' . $params["leftSprocketTeeth#Field"] . ':' . $params["rightSprocketTeeth#Field"];
   }
 
   if (!empty($params["centerToCenterField"])){ // using user parameters
     $paramList .= ' ' . $params["centerToCenterField"];
-  } else { // using blender returned values
+  } else if (!empty($params["Center To Center"])){ // using blender returned values
     $paramList .= ' ' . $params["Center To Center"];
+  } else { // no user parameter specified
+    $paramList .= ' 0';
   }
 
   if (!empty($params["chainSizeList"])){ // using user parameters
@@ -52,63 +55,45 @@ function formatParams($params)
     $paramList .= ' 0';
   }
 
-  if (!empty($params["desiredSlackField"])){ // using user parameters
+  if (isset($params["desiredSlackField"]) && $params["desiredSlackField"] != ""){ // using user parameters
     $paramList .= ' ' . $params["desiredSlackField"];
-  } else if (!empty($params["desiredSlack"])){ // using blender returned values
-    $paramList .= ' ' . $params["desiredSlack"];;
+  } else if (isset($params["desiredSlack"]) && $params["desiredSlack"] != ""){ // using blender returned values
+    $paramList .= ' ' . $params["desiredSlack"];
   } else { // not specified
-    $paramList .= ' 0';
+    $paramList .= ' 1';
   }
 
-    $paramList .= ' 0';
+  $paramList .= ' 0'; // placeholder from input that used to be passed
 
-  /*  if ($params["option"] == "numTeeth"){
-      $paramList .= ' ' . $params["gearRatioField"];
-      $paramList .= ' ' . $params["centerToCenterField"];
-      $paramList .= ' ' . $params["chainSizeList"];
-      $paramList .= ' ' . (($params["leftSprocketTeeth#Field"]=="")?'0':$params["leftSprocketTeeth#Field"]);
-      $paramList .= ' ' . (($params["rightSprocketTeeth#Field"]=="")?'0':$params["rightSprocketTeeth#Field"]);
-      $paramList .= ' ' . (($params["desiredSlackField"]=="")?'0':$params["desiredSlackField"]);
-      $paramList .= ' 0'; // this used to be another parameter, not it is just here to keep blender happy
-    } else {
-    echo ("option isn't numTeeth!");
-      $paramList .= ' ' . $params["bigTeeth"] . ':' . $params["littleTeeth"];
-      $paramList .= ' ' . $params["Center To Center"];
-      $paramList .= ' ' . "chain25";
-      $paramList .= ' ' . "0";
-      $paramList .= ' ' . "0";
-      $paramList .= ' ' . (($params["desiredSlack"]=="")?'0':$params["desiredSlack"]);
-      $paramList .= ' ' . "0";
-      }*/
-    if (array_key_exists("holeOption_versaHub", $params)){
-      $paramList .= ' ' . $params["holeOption_versaHub"];
-    } else {
-      $paramList .= ' ' . "off";
-    }
-    if (array_key_exists("holeOption_tetrixHub", $params)){
+  if (array_key_exists("holeOption_versaHub", $params)){
+    $paramList .= ' ' . $params["holeOption_versaHub"];
+  } else {
+    $paramList .= ' ' . "off";
+  }
+  if (array_key_exists("holeOption_tetrixHub", $params)){
     $paramList .= ' ' . $params["holeOption_tetrixHub"];
-    } else {
-      $paramList .= ' ' . "off";
-    }
-    if (array_key_exists("holeOption_versaBearingHole", $params)){
-      $paramList .= ' ' . $params["holeOption_versaBearingHole"];
-    } else {
-      $paramList .= ' ' . "off";
-    }
-    if (isset($params["option"])){
-      $paramList .= ' ' . $params["option"];
-    } else {
-      $paramList .= ' placeHolder';
-    }
+  } else {
+    $paramList .= ' ' . "off";
+  }
+  if (array_key_exists("holeOption_versaBearingHole", $params)){
+    $paramList .= ' ' . $params["holeOption_versaBearingHole"];
+  } else {
+    $paramList .= ' ' . "off";
+  }
+  if (isset($params["option"])){
+    $paramList .= ' ' . $params["option"];
+  } else {
+    $paramList .= ' placeHolder';
+  }
 
   return $paramList;
 }  
 
 /* returnFileNames() - a function to return the filenames of the files written by the blender script.
-                       This is accomplished by searching for the "keyphrase" the blender script will
-		       use, as well as getting rid of the $base_path of the file (which would have
-		       caused confusion when trying to use the output of this function in an <img>
-		       tag. Note: this function returns an array!
+   This is accomplished by searching for the "keyphrase" the blender script will
+   use, as well as getting rid of the $base_path of the file (which would have
+   caused confusion when trying to use the output of this function in an <img>
+   tag. Note: this function returns an array!
 */
 function returnFileNames($output, $type, $keyphrase = "Saved: ", $base_path = "/var/www-chapresearch/")
 {
@@ -130,11 +115,12 @@ function returnFileNames($output, $type, $keyphrase = "Saved: ", $base_path = "/
 }
 
 /* parseOutput() - finds and parses the JSON output of the blender script, given that it 
-                   starts with $starting_string.
- */
+   starts with $starting_string.
+*/
 function parseOutput($output, $starting_string = "JSON output")
 {
   $pos = -1;
+  
   for ($i = 0; $i < sizeof($output); $i++){
     $result = strpos($output[$i], $starting_string);
     if($result !== false){
@@ -152,9 +138,9 @@ function parseOutput($output, $starting_string = "JSON output")
 }
 
 /* cleanUp() - deletes files from the output folder that are over $expir_date days old,
-               regardless of file type. Note: the age is determined by when the file was
-	       last modified.
- */
+   regardless of file type. Note: the age is determined by when the file was
+   last modified.
+*/
 function cleanUp($expir_date = 7)
 {
   $cmd ='find /var/www-chapresearch/SprocketR_Output -mtime +' . $expir_date . ' -type f -delete';
@@ -162,7 +148,7 @@ function cleanUp($expir_date = 7)
 }
 
 /* generateThing() - a general function to generate various outputs from the blender script (given by
-                     the value of the key "output_type" in the $params.
+   the value of the key "output_type" in the $params.
 */
 function generateThing($params)
 {
@@ -173,10 +159,14 @@ function generateThing($params)
   } else {
     $cmd .= 'blend.blend';
   }
-  $cmd .=  ' -P /usr/lib/blender/scripts/addons/sprocketr.py -- ';
+
+  if ($_GET["page_id"] == PAGE_2){
+    $cmd .=  ' -P /usr/lib/blender/scripts/addons/' . SCRIPT . ' -- ';
+  } else if ($_GET["page_id"] == PAGE_2_ALT){
+    $cmd .=  ' -P /usr/lib/blender/scripts/addons/' . SCRIPT_ALT . ' -- ';
+  }
 
   $cmd .= $fileName . formatParams($params);
-  echo $cmd;
   $output = array();
   exec($cmd, $output);
   
@@ -186,8 +176,8 @@ function generateThing($params)
 }
 
 /* zipSprockets() - puts the two separate sprocket files into
-                    a zip file for downloading.
- */
+   a zip file for downloading.
+*/
 function zipSprockets($nameOfZip, $filesToZip)
 {
   $zip = new ZipArchive();
@@ -202,28 +192,35 @@ function zipSprockets($nameOfZip, $filesToZip)
 }
 
 /* compareSlack() - a function to compare the slack between two sprocket options.
-                    Used for ordering the options within the table from least to most
-		    slack.
- */
+   Used for ordering the options within the table from least to most
+   slack.
+*/
 function compareSlack($option1, $option2)
 {
-  if ($option1["slack"] == $option2["slack"]){
+  if (abs($option1["distFromDesiredSlack"]) == abs($option2["distFromDesiredSlack"])){
     return 0;
   }
-  return (($option1["slack"] < $option2["slack"]) ? -1:1);
+  return ((abs($option1["distFromDesiredSlack"]) < abs($option2["distFromDesiredSlack"])) ? -1:1);
 }
 
 /* generateOptions() - a method to return all of the sprocket options possible for the given
-                       input, whether that be the original user data, or a past option. Note
-		       only the 5 options with the least slack are returned. That is because
-		       of the way the blender script operates. This is distinct from 
-		       generateThing() in that it is called normally (not through AJAX).
- */
+   input, whether that be the original user data, or a past option. Note
+   only the 5 options with the least slack are returned. That is because
+   of the way the blender script operates. This is distinct from 
+   generateThing() in that it is called normally (not through AJAX).
+*/
 function generateOptions($params)
 {
-  $cmd = 'blender -b /usr/lib/blender/scripts/addons/blend.blend -P /usr/lib/blender/scripts/addons/sprocketr.py -- ';
+  if ($_GET["page_id"] == PAGE_2){
+    $cmd = 'blender -b /usr/lib/blender/scripts/addons/blend.blend -P';
+    $cmd .= ' /usr/lib/blender/scripts/addons/' . SCRIPT . ' -- ';
+  } else if ($_GET["page_id"] == PAGE_2_ALT){
+    $cmd = 'blender -b /usr/lib/blender/scripts/addons/blend.blend -P';
+    $cmd .= ' /usr/lib/blender/scripts/addons/' . SCRIPT_ALT . ' -- ';
+  }
+
   $cmd .= "options.data " . formatParams($params);
-  echo $cmd;
+
   $output = array();
   exec($cmd, $output);
 
@@ -231,6 +228,7 @@ function generateOptions($params)
   if ($options != false){
     usort($options, 'compareSlack');
   }
+
   return $options;
 }
 

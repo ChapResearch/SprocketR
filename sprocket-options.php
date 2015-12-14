@@ -61,8 +61,8 @@ if (isset($_GET["output_type"])){
   if ($fileNames != false){
     switch($_GET["output_type"]){
     case "png":
-      echo("<div style=\"margin:auto;width:50%;\">");
-      echo("<img src=\"$fileNames[0]\">");
+      echo("<div style=\"margin:auto;width:50%;text-align:center\">");
+      echo("<img src=\"$fileNames[0]\" style=\"margin:auto\">");
       echo("</div>");
       break;
     case "stl":
@@ -76,7 +76,6 @@ if (isset($_GET["output_type"])){
                window.location = 'download.php?fileName=$filename';
                });
                </script>");
-      //echo("<a href=\"download.php?fileName=$filename\">CLICK TO DOWNLOAD</a></h1>");
       break;
     }
   } else {
@@ -94,27 +93,29 @@ if (isset($_GET["output_type"])){
 	  $option[$key] = $_SESSION["user_params"][$key];
 	}
       }
+    }
+
+    // sets all of the hole options properly
+    foreach(array_keys($_SESSION["user_params"]) as $key){
+      $pos = strpos($key, "holeOption");
+      if (is_int($pos)){
+	$i = 0;
+	foreach($_SESSION["options"] as $option){
+	  $option[$key] = $_SESSION["user_params"][$key];
+	  $_SESSION["options"][$i] = $option;
+	  $i++;
+	}
+      }
     } // end of foreach
 
-  foreach(array_keys($_SESSION["user_params"]) as $key){
-    $pos = strpos($key, "holeOption");
-    if (is_int($pos)){
-      $i = 0;
-      foreach($_SESSION["options"] as $option){
-	$option[$key] = $_SESSION["user_params"][$key];
-	$_SESSION["options"][$i] = $option;
-	$i++;
-      }
-    }
-  }
   } else {
     echo ("<h1 style=\"text-align:center\">");
-    echo("<strong>Unable to generate further options!</strong></h1>");
+    echo('<strong>Unable to generate further options! Click <a href="?page_id=2090">here</a> for help!</strong></h1>');
   }
 } //--------------------------------------------------------------------------------------------------------
 
 if(!empty($_SESSION["options"])){
-  createOptionsTable($_SESSION["options"]);
+  createOptionsTable(&$_SESSION["options"]);
 }
 
 echo ("</table>");

@@ -1,3 +1,6 @@
+# version of script released on 12/11/15
+# used by page_id 2162 and 2164
+
 import bpy
 import os
 import math
